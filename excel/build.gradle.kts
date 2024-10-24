@@ -12,10 +12,12 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation(project(":Spec"))
-    runtimeOnly(project(":pt"))
-    runtimeOnly(project(":csv"))
-    runtimeOnly(project(":pdf"))
-    runtimeOnly(project(":excel"))
+    implementation("org.apache.poi:poi:5.3.0")
+    implementation ("org.apache.poi:poi-ooxml:5.2.3")
+    implementation ("org.apache.xmlbeans:xmlbeans:5.0.2")
+
+
+
 }
 
 tasks.test {

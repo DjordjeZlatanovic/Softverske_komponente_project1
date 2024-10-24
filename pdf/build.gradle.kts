@@ -12,12 +12,14 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation(project(":Spec"))
-    runtimeOnly(project(":pt"))
-    runtimeOnly(project(":csv"))
-    runtimeOnly(project(":pdf"))
-    runtimeOnly(project(":excel"))
+    implementation("org.xhtmlrenderer:flying-saucer-core:9.9.5")
+    implementation("org.xhtmlrenderer:flying-saucer-pdf-itext5:9.7.2")
+    //implementation("org.slf4j:slf4j-nop:1.7.36")
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+kotlin {
+    jvmToolchain(21)
 }

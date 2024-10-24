@@ -12,12 +12,12 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation(project(":Spec"))
-    runtimeOnly(project(":pt"))
-    runtimeOnly(project(":csv"))
-    runtimeOnly(project(":pdf"))
-    runtimeOnly(project(":excel"))
+    implementation("org.apache.commons:commons-csv:1.12.0")
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+kotlin {
+    jvmToolchain(21)
 }
