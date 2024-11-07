@@ -1,5 +1,6 @@
 package excel
 
+import Extenzija
 import Izvestaj
 import Specifikacija
 import Tip
@@ -12,6 +13,7 @@ import java.io.FileOutputStream
 
 class EXCELReport:Specifikacija() {
     override var tip = Tip.EXCEL
+    override var extenzija = Extenzija.xlsx
 
 
     override fun genR(izvestaj: Izvestaj, pathToFile: String) {
@@ -193,8 +195,8 @@ class EXCELReport:Specifikacija() {
 
 
 
-
-        FileOutputStream(pathToFile).use{ outputStream ->
+        val path = pathToFile + "." + extenzija
+        FileOutputStream(path).use{ outputStream ->
             workBook.write(outputStream)
         }
         workBook.close()

@@ -8,36 +8,82 @@ import java.sql.Statement
 import java.util.ArrayList
 import java.util.Objects
 import kotlin.jvm.Throws
-
+/**
+ * Apstraktna klasa koja služi za generisanje različitih tipova izveštaja.
+ */
 abstract class Specifikacija {
 
     abstract var tip : Tip
+    abstract var extenzija : Extenzija
 
-
+    /**
+     * Apstraktna metoda koja generiše izveštaj na osnovu prosleđenih parametara.
+     *
+     * @param izvestaj Objekat klase Izvestaj
+     * @param pathToFile Putanja do fajla gde će izveštaj biti sačuvan
+     */
     abstract fun genR(izvestaj: Izvestaj, pathToFile: String)
 
+    /**
+     * Generiše model iz liste podataka i poziva abstraktnu funkciju genR koja kreira izvestaj.
+     *
+     * @param podaci Lista u listi koja će biti prosledjeni za kreiranje modela
+     * @param pathToFile Putanja do fajla gde će izveštaj biti sačuvan
+     */
     fun generateReport(podaci : List<List<Any>>, pathToFile: String){
         var izvestaj = Izvestaj(podaci)
         genR(izvestaj, pathToFile)
     }
 
+    /**
+     * Generiše model sa zaglavljem.
+     *
+     * @param podaci Lista u listi koja će prosledjeni za kreiranje modela
+     * @param header Lista naziva header-a
+     * @param pathToFile Putanja do fajla gde će izveštaj biti sačuvan
+     */
     fun generateReport(podaci : List<List<Any>>, header : List<String>, pathToFile: String){
         var izvestaj = Izvestaj(podaci, null, header)
         genR(izvestaj, pathToFile)
     }
 
+    /**
+     * Generiše model sa naslovom i rezimeom.
+     *
+     * @param podaci Lista u listi koja će biti proslednjena za kreiranje modela
+     * @param title Naslov modela
+     * @param rezime Mapa koja sadrži podatke za rezime
+     * @param pathToFile Putanja do fajla gde će izveštaj biti sačuvan
+     */
     fun generateReport(podaci : List<List<Any>>, title : String, rezime : Map<String, Int>, pathToFile: String){
         var izvestaj = Izvestaj(podaci, title)
         izvestaj.izracunajSummary(rezime)
         genR(izvestaj, pathToFile)
     }
 
+    /**
+     * Generiše model sa zaglavljem, naslovom i rezimeom.
+     *
+     * @param podaci Lista u listi koja će biti proslednjena za kreiranje modela
+     * @param header Lista naziva header-a
+     * @param title Naslov modela
+     * @param rezime Mapa koja sadrži podatke za rezime
+     * @param pathToFile Putanja do fajla gde će izveštaj biti sačuvan
+     */
     fun generateReport(podaci : List<List<Any>>, header : List<String>, title : String, rezime : Map<String, Any>, pathToFile: String){
         var izvestaj = Izvestaj(podaci, title, header)
         izvestaj.izracunajSummary(rezime)
         genR(izvestaj, pathToFile)
     }
 
+    /**
+     * Generiše model iz SQL upita.
+     *
+     * @param conn Konekcija ka bazi podataka i poziva funkciju generateReport(rs, headerUse, pathToFile)
+     * @param query SQL upit
+     * @param headerUse Označava da li će se koristiti header-i
+     * @param pathToFile Putanja do fajla gde će izveštaj biti sačuvan
+     */
     @Throws(SQLException::class)
     fun generateReport(conn : Connection, query : String, headerUse: Boolean, pathToFile: String){
         val statement : Statement = conn.createStatement()
@@ -45,6 +91,13 @@ abstract class Specifikacija {
         generateReport(rs, headerUse, pathToFile)
     }
 
+    /**
+     * Generiše izveštaj iz ResultSet-a.
+     *
+     * @param rs ResultSet koji sadrži podatke i kreira model
+     * @param headerUse Označava da li će se koristiti header-i iz ResultSet-a
+     * @param pathToFile Putanja do fajla gde će izveštaj biti sačuvan
+     */
     fun generateReport(rs : ResultSet, headerUse : Boolean, pathToFile : String){
         val all : MutableList<List<String>> = ArrayList()
         val podaci = rs.metaData
@@ -65,6 +118,14 @@ abstract class Specifikacija {
             generateReport(all, header, pathToFile)
         }
     }
+
+    /**
+     * Generiše model iz liste podataka sa opcijom za header.
+     *
+     * @param podaci Lista u listi
+     * @param headerUse Označava da li će se prva lista koristiti kao zaglavlje
+     * @param pathToFile Putanja do fajla gde će izveštaj biti sačuvan
+     */
     fun generateReport(podaci : List<List<Any>>, headerUse: Boolean, pathToFile: String){
         if(!headerUse) generateReport(podaci, pathToFile)
         else{
@@ -78,6 +139,12 @@ abstract class Specifikacija {
         }
     }
 
+    /**
+     * Generiše model iz mape podataka.
+     *
+     * @param podaci Mapa gde su ključevi nazivi kolona, a vrednost lista u listi
+     * @param pathToFile Putanja do fajla gde će izveštaj biti sačuvan
+     */
     fun generateReport(podaci : Map<String, List<Any>>,pathToFile: String){
         var header : MutableList<String> = ArrayList()
         var all : MutableList<List<Any>> = ArrayList()
@@ -98,6 +165,15 @@ abstract class Specifikacija {
 
     }
 
+    /**
+     * Generiše model iz liste podataka sa header-om, naslovom i rezimeom.
+     *
+     * @param podaci Lista u listi
+     * @param headerUse Označava da li će se prva lista koristiti kao header
+     * @param title Naslov model-a
+     * @param rezime Mapa koja sadrži podatke za rezime
+     * @param pathToFile Putanja do fajla gde će izveštaj biti sačuvan
+     */
     fun generateReport(podaci : List<List<Any>>, headerUse: Boolean, title : String, rezime: Map<String, Int>, pathToFile: String){
         if(!headerUse) generateReport(podaci,title, rezime, pathToFile)
         else{
@@ -110,6 +186,15 @@ abstract class Specifikacija {
             generateReport(podaci, header, title, rezime, pathToFile)
         }
     }
+
+    /**
+     * Generiše model iz mape podataka sa naslovom i rezimeom.
+     *
+     * @param podaci Mapa gde su ključevi nazivi kolona, a vrednost lista u listi
+     * @param title Naslov modela
+     * @param rezime Mapa koja sadrži podatke za rezime
+     * @param pathToFile Putanja do fajla gde će izveštaj biti sačuvan
+     */
     fun generateReport(podaci : Map<String, List<Any>>, title: String, rezime: Map<String, Any>, pathToFile: String){
         var header : MutableList<String> = ArrayList()
         var all : MutableList<List<Any>> = ArrayList()

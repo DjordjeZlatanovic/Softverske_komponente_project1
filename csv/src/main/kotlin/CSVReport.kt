@@ -1,5 +1,6 @@
 package csv
 
+import Extenzija
 import Izvestaj
 import Specifikacija
 import Tip
@@ -12,6 +13,7 @@ import java.io.FileWriter
 
 class CSVReport() : Specifikacija() {
     override var tip = Tip.CSV
+    override var extenzija = Extenzija.csv
 
     override fun genR(izvestaj: Izvestaj, pathToFile: String) {
         if(izvestaj.getTitle()!=null)
@@ -24,7 +26,8 @@ class CSVReport() : Specifikacija() {
             }
         }
         try {
-            val writer = FileWriter(File(pathToFile))
+            val path = pathToFile + "." + extenzija
+            val writer = FileWriter(File(path))
             val csvPrinter = CSVPrinter(writer, CSVFormat.DEFAULT)
             if(izvestaj.getHeader()!=null){
                 csvPrinter.printRecord(izvestaj.getHeader()!!.getPodaci())
