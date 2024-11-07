@@ -1,5 +1,6 @@
 package pdf
 
+import Extenzija
 import Izvestaj
 import Specifikacija
 import Tip
@@ -12,7 +13,7 @@ import java.nio.file.Paths
 
 class PDFReport: Specifikacija() {
     override var tip= Tip.PDF
-
+    override var extenzija = Extenzija.pdf
 
 
     override fun genR(izvestaj: Izvestaj, pathToFile: String) {
@@ -116,7 +117,8 @@ class PDFReport: Specifikacija() {
             stringBuilder.append("</body></html>")
             val html = stringBuilder.toString()
             try {
-                val outputStream = FileOutputStream(pathToFile)
+                val path = pathToFile + "." + extenzija
+                val outputStream = FileOutputStream(path)
                 val renderer = ITextRenderer()
 
 

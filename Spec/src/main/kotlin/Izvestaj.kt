@@ -58,7 +58,30 @@ class Izvestaj(private var podaci: List<List<Any>> = mutableListOf(),
     fun getHeader(): Header? {
         return header
     }
-
+    /**
+     * Izračunavanje rezimea na osnovu prosleđene mape operacija i kolona.
+     *
+     * @param map Mapa gde je ključ naziv operacije koja se izvršava, a vrednost može biti:
+     *            - String: vrednost koja ce se upisati u labelu
+     *            - List<Int>: broj kolona u listi nad kojima se vrši operacija
+     *
+     * Podržane operacije su:
+     * - "sum": suma vrednosti u kolonama
+     * - "prosek": prosečna vrednost u kolonama
+     * - "count": broj vrednosti u kolonama
+     * - "count if" : broj vrednosti u kolonama koje poseduju zadatu vrednost
+     *
+     * Primeri upotrebe:
+     * ```
+     * // Za jednu kolonu
+     * izracunajSummary(mapOf("sum" to 50))
+     *
+     * // Za više kolona
+     * izracunajSummary(mapOf("avg" to listOf(0, 1)))
+     *
+     *
+     * @throws IllegalArgumentException ako je prosleđena nepoznata operacija
+     */
     fun izracunajSummary(map: Map<String,Any>){//promenio iz MutableMap u obican Map zbog specifikacije
         var mapa :MutableMap<LabelaRezime,VrednostRezime> = mutableMapOf()
         for ((key,value) in map){
@@ -144,11 +167,11 @@ class Izvestaj(private var podaci: List<List<Any>> = mutableListOf(),
                 this.kolone.add(Column(novaLista))
 
             }
-            else{
-                var novaLista : MutableList<Int> = mutableListOf()
+            else if(operacija == "*"){
+                var novaLista : MutableList<Int> = MutableList(this.getPodaci().get(kolona.get(0) as Int).getKolona().size){1}
 
-                for(i in 0..kolona.size){
-                    for(j in 0..this.getPodaci().get(kolona.get(i) as Int).getKolona().size){
+                for(i in 0..kolona.size - 1){
+                    for(j in 0..this.getPodaci().get(kolona.get(i) as Int).getKolona().size -1){
                         var vrednost : Int = novaLista.get(j)
 
                         novaLista.set(j, vrednost * this.getPodaci().get(kolona.get(i) as Int).getKolona().get(j) as Int)

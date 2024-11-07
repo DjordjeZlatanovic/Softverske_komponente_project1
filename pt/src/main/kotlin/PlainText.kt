@@ -1,4 +1,5 @@
 package pt
+import Extenzija
 import Izvestaj
 import Specifikacija
 import Tip
@@ -8,6 +9,7 @@ import java.io.IOException
 
 class PlainText() : Specifikacija(){
     override var tip = Tip.PLAIN_TEXT
+    override var extenzija = Extenzija.txt
 
     override fun genR(izvestaj: Izvestaj, pathToFile: String) {
         for (i in izvestaj.getPodaci()){
@@ -49,7 +51,8 @@ class PlainText() : Specifikacija(){
 
         }
         try{
-            File(pathToFile).writeText(result)
+            val path = pathToFile + "." + extenzija
+            File(path).writeText(result)
         }catch (e : IOException){
             println("Greska")
         }
