@@ -1,5 +1,7 @@
 plugins {
     kotlin("jvm")
+    application//dodato
+    id("com.github.johnrengelman.shadow") version "7.1.2"//dodato
 }
 
 group = "org.example"
@@ -17,7 +19,16 @@ dependencies {
     runtimeOnly(project(":pdf"))
     runtimeOnly(project(":excel"))
 }
-
+application {
+    mainClass.set("MainKt")
+}//dodato
+tasks.shadowJar {
+    archiveClassifier.set("all")
+    manifest {
+        attributes["Main-Class"] = application.mainClass.get()
+    }
+    mergeServiceFiles() // include meta-inf services files
+}//dodato
 tasks.test {
     useJUnitPlatform()
 }

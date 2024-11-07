@@ -14,16 +14,29 @@ abstract class Specifikacija {
     abstract var tip : Tip
 
 
+    abstract fun genR(izvestaj: Izvestaj, pathToFile: String)
 
+    fun generateReport(podaci : List<List<Any>>, pathToFile: String){
+        var izvestaj = Izvestaj(podaci)
+        genR(izvestaj, pathToFile)
+    }
 
-    abstract fun generateReport(podaci : List<List<Any>>, pathToFile: String)
+    fun generateReport(podaci : List<List<Any>>, header : List<String>, pathToFile: String){
+        var izvestaj = Izvestaj(podaci, null, header)
+        genR(izvestaj, pathToFile)
+    }
 
-    abstract fun generateReport(podaci : List<List<Any>>, header : List<String>, pathToFile: String)
+    fun generateReport(podaci : List<List<Any>>, title : String, rezime : Map<String, Int>, pathToFile: String){
+        var izvestaj = Izvestaj(podaci, title)
+        izvestaj.izracunajSummary(rezime)
+        genR(izvestaj, pathToFile)
+    }
 
-    abstract fun generateReport(podaci : List<List<Any>>, title : String, rezime : Map<String, Int>, pathToFile: String)
-
-    abstract fun generateReport(podaci : List<List<Any>>, header : List<String>, title : String, rezime : Map<String, Int>, pathToFile: String)
-
+    fun generateReport(podaci : List<List<Any>>, header : List<String>, title : String, rezime : Map<String, Any>, pathToFile: String){
+        var izvestaj = Izvestaj(podaci, title, header)
+        izvestaj.izracunajSummary(rezime)
+        genR(izvestaj, pathToFile)
+    }
 
     @Throws(SQLException::class)
     fun generateReport(conn : Connection, query : String, headerUse: Boolean, pathToFile: String){
@@ -97,7 +110,7 @@ abstract class Specifikacija {
             generateReport(podaci, header, title, rezime, pathToFile)
         }
     }
-    fun generateReport(podaci : Map<String, List<Any>>, title: String, rezime: Map<String, Int>, pathToFile: String){
+    fun generateReport(podaci : Map<String, List<Any>>, title: String, rezime: Map<String, Any>, pathToFile: String){
         var header : MutableList<String> = ArrayList()
         var all : MutableList<List<Any>> = ArrayList()
         for ((key, value) in podaci) {

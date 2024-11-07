@@ -1,5 +1,6 @@
 package csv
 
+import Izvestaj
 import Specifikacija
 import Tip
 import org.apache.commons.csv.CSVFormat
@@ -12,21 +13,29 @@ import java.io.FileWriter
 class CSVReport() : Specifikacija() {
     override var tip = Tip.CSV
 
-    override fun generateReport(podaci: List<List<Any>>, pathToFile: String) {
-
-        //println("ne moze")
-        val velicina = podaci[0]
-        for(i in 0..<podaci[0].size) {
-            if(podaci[i].size!=podaci[i+1].size) {
-                println("${podaci[i].size},${podaci[i+1].size}")
-                throw IllegalArgumentException("Pogresan broj kolona i redova")
+    override fun genR(izvestaj: Izvestaj, pathToFile: String) {
+        if(izvestaj.getTitle()!=null)
+            throw IllegalArgumentException("CSV ne moze da ima naslov")
+        if(izvestaj.getRezime()!=null)
+            throw IllegalArgumentException("CSV ne moze da ima rezime")
+        for (i in izvestaj.getPodaci()){
+            if(i.isBoldovano() || i.isBojaUslov()){
+                throw IllegalArgumentException("CSV ne moze da bude formatiran")
             }
         }
-
         try {
             val writer = FileWriter(File(pathToFile))
             val csvPrinter = CSVPrinter(writer, CSVFormat.DEFAULT)
-            for (row in podaci) {
+            if(izvestaj.getHeader()!=null){
+                csvPrinter.printRecord(izvestaj.getHeader()!!.getPodaci())
+            }
+            for( i in 0 until izvestaj.getPodaci().first().getKolona().size){
+                val row = mutableListOf<Any>()
+                for(col in izvestaj.getPodaci()){
+                    row.add(col.getKolona().get(i))
+                }
+
+
                 csvPrinter.printRecord(row)
             }
             writer.close()
@@ -34,28 +43,5 @@ class CSVReport() : Specifikacija() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-    }
-
-    override fun generateReport(podaci: List<List<Any>>, header: List<String>, pathToFile: String) {
-        try {
-            val writer = FileWriter(File(pathToFile))
-            val csvPrinter = CSVPrinter(writer, CSVFormat.DEFAULT)
-            csvPrinter.printRecord(header)
-            for (row in podaci) {
-                csvPrinter.printRecord(row)
-            }
-            writer.close()
-            csvPrinter.close()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    override fun generateReport(podaci: List<List<Any>>, title: String, rezime: Map<String, Int>, pathToFile: String) {
-        throw IllegalArgumentException("CSV cannot have title and summary")
-    }
-
-    override fun generateReport(podaci: List<List<Any>>,header: List<String>,title: String,rezime: Map<String, Int>,pathToFile: String) {
-        throw IllegalArgumentException("CSV cannot have title and summary")
     }
 }

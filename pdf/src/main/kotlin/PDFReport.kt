@@ -1,5 +1,6 @@
 package pdf
 
+import Izvestaj
 import Specifikacija
 import Tip
 import org.xhtmlrenderer.pdf.ITextRenderer
@@ -12,167 +13,124 @@ import java.nio.file.Paths
 class PDFReport: Specifikacija() {
     override var tip= Tip.PDF
 
-    override fun generateReport(podaci: List<List<Any>>, pathToFile: String) {
 
-        val stringBuilder = StringBuilder()
-        stringBuilder.append("<html><body><table border='1'>\n") // Start the table
-        for (row in podaci) {
-            stringBuilder.append("  <tr>\n") // Start a new row
-            for (cell in row) {
-                stringBuilder.append("    <td>$cell</td>\n") // Add cell data
+
+    override fun genR(izvestaj: Izvestaj, pathToFile: String) {
+            val stringBuilder = StringBuilder()
+            if(izvestaj.getTitle() !=null){
+                var title = izvestaj.getTitle()
+                var formatiranTitle = izvestaj.getTitle()!!.getNaslov()
+                if (title!!.isBoldovano()) formatiranTitle = "<b>$formatiranTitle</b>"
+                if (title.isItalic()) formatiranTitle = "<i>$formatiranTitle</i>"
+                if (title.isUnderline()) formatiranTitle = "<u>$formatiranTitle</u>"
+                if (title.getBoja() != null) formatiranTitle = "<span style='color: ${title.getBoja()};'>$formatiranTitle</span>"
+                stringBuilder.append("<html><body><h1>$formatiranTitle</h1><table style='border-collapse: collapse; border: 2px solid black;'>\n") // Start the table
+            }else if(izvestaj.getTitle() ==null){
+                stringBuilder.append("<html><body><table style='border-collapse: collapse; border: 2px solid black;'>\n") // Start the table
+
             }
-            stringBuilder.append("  </tr>\n") // End the row
-        }
-        stringBuilder.append("</table></body></html>") // End the table
-        val html = stringBuilder.toString()
-        try {
-            val outputStream = FileOutputStream(pathToFile)
-            val renderer = ITextRenderer()
+            if(izvestaj.getHeader() !=null){
+                stringBuilder.append("  <tr>\n")
 
+                for (h in izvestaj.getHeader()!!.getPodaci()) {
+                    // Inicijalizuj formatiranu verziju zaglavlja
+                    var formattedHeader = h
 
-            renderer.setDocumentFromString(html)
-            renderer.layout()
+                    // Proveri da li je bold
+                    if (izvestaj.getHeader()!!.isBoldovano()) {
+                        formattedHeader = "<b>$formattedHeader</b>"
+                    }
 
+                    // Proveri boju
+                    if (izvestaj.getHeader()!!.isBojaUslov()) {
+                        val color = izvestaj.getHeader()!!.getBoja()
+                        formattedHeader = "<span style='color: $color;'>$formattedHeader</span>"
+                    }
 
-            renderer.createPDF(outputStream)
+                    // Dodaj zaglavlje sa formatiranjem
+                    stringBuilder.append("    <th style=' border: 1px solid black;'>$formattedHeader</th>\n")
+                }
 
-
-            outputStream.close()
-        }catch (e: java.lang.Exception) {
-            e.printStackTrace()
-        }
-
-
-    }
-
-    override fun generateReport(podaci: List<List<Any>>, header: List<String>, pathToFile: String) {
-        val stringBuilder = StringBuilder()
-        stringBuilder.append("<html><body><table border='1'>\n")
-        stringBuilder.append("  <tr>\n")
-        for (h in header) {
-
-            stringBuilder.append("    <th>$h</th>\n")
-
-        }
-        stringBuilder.append("  </tr>\n")
-        for (row in podaci) {
-            stringBuilder.append("  <tr>\n")
-            for (cell in row) {
-                stringBuilder.append("    <td>$cell</td>\n")
+                stringBuilder.append("  </tr>\n")
             }
-            stringBuilder.append("  </tr>\n")
-        }
-        stringBuilder.append("</table></body></html>")
-        val html = stringBuilder.toString()
-        try {
-            val outputStream = FileOutputStream(pathToFile)
-            val renderer = ITextRenderer()
 
 
-            renderer.setDocumentFromString(html)
-            renderer.layout()
 
+            for (rowInd in 0 until izvestaj.getPodaci().get(1).getKolona().size) {
+                stringBuilder.append("  <tr>\n")
+                for (col in izvestaj.getPodaci()) {
+                    val values = col.getKolona()
+                    val bold = col.isBoldovano()
+                    val colorCondition = col.isBojaUslov()
+                    val color = if (colorCondition) col.getBoja() else ""
 
-            renderer.createPDF(outputStream)
+                    var formattedValue = values[rowInd]
+                    if (bold) {
+                        formattedValue = "<b>$formattedValue</b>"
+                    }
+                    if (color.isNotEmpty()) {
+                        formattedValue = "<span style='color: $color;'>$formattedValue</span>"
+                    }
 
+                    stringBuilder.append("    <td style=' border: 1px solid black;'>$formattedValue</td>\n")
 
-            outputStream.close()
-        }catch (e: java.lang.Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    override fun generateReport(podaci: List<List<Any>>, title: String, rezime: Map<String, Int>, pathToFile: String) {
-        val stringBuilder = StringBuilder()
-        stringBuilder.append("<html><body><h1>$title</h1><table border='1'>\n") // Start the table
-
-        for (row in podaci) {
-            stringBuilder.append("  <tr>\n")
-            for (cell in row) {
-                stringBuilder.append("    <td>$cell</td>\n")
+                }
+                stringBuilder.append("  </tr>\n")
             }
-            stringBuilder.append("  </tr>\n")
-        }
-        stringBuilder.append("</table>\n")
-        stringBuilder.append("<h2>Rezime</h2>\n")
-       stringBuilder.append("<table>\n")
-        rezime.forEach { (key, value) ->
-            stringBuilder.append("  <tr>\n")
-            stringBuilder.append("    <td>$key</td>\n")
-            stringBuilder.append("    <td> : </td>\n")
-            stringBuilder.append("    <td>$value</td>\n")
-            stringBuilder.append("  </tr>\n")
-        }
-        stringBuilder.append("</table>\n")
-
-        stringBuilder.append("</body></html>")
-        val html = stringBuilder.toString()
-        try {
-            val outputStream = FileOutputStream(pathToFile)
-            val renderer = ITextRenderer()
+            stringBuilder.append("</table>\n")
 
 
-            renderer.setDocumentFromString(html)
-            renderer.layout()
+            if(izvestaj.getRezime()!=null){
+                stringBuilder.append("<h2>Rezime</h2>\n")
+                stringBuilder.append("<table>\n")
+                izvestaj.getRezime()!!.getRezime().forEach { (key, value) ->
+                    stringBuilder.append("  <tr>\n")
+                    var formatiranTitle = key.getKey()
+                    if (key.isBold()) formatiranTitle = "<b>$formatiranTitle</b>"
+                    if (key.isItalic()) formatiranTitle = "<i>$formatiranTitle</i>"
+                    if (key.isUnderline()) formatiranTitle = "<u>$formatiranTitle</u>"
+                    if (key.getColor() != null) formatiranTitle = "<span style='color: ${key.getColor()};'>$formatiranTitle</span>"
 
 
-            renderer.createPDF(outputStream)
+                    stringBuilder.append("    <td>$formatiranTitle</td>\n")
+                    stringBuilder.append("    <td> : </td>\n")
 
+                    var formatiranTitle2 = value.getVrednost()
+                    if (value.isBold()) formatiranTitle2 = "<b>$formatiranTitle2</b>"
+                    if (value.isItalic()) formatiranTitle2 = "<i>$formatiranTitle2</i>"
+                    if (value.isUnderline()) formatiranTitle2 = "<u>$formatiranTitle2</u>"
+                    if (value.getColor() != null) formatiranTitle2 = "<span style='color: ${value.getColor()};'>$formatiranTitle2</span>"
 
-            outputStream.close()
-        }catch (e: java.lang.Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    override fun generateReport(podaci: List<List<Any>>, header: List<String>, title: String, rezime: Map<String, Int>, pathToFile: String) {
-        val stringBuilder = StringBuilder()
-        stringBuilder.append("<html><body><h1>$title</h1><table border='1'>\n") // Start the table
-        stringBuilder.append("  <tr>\n")
-        for (h in header) {
-
-            stringBuilder.append("    <th>$h</th>\n")
-
-        }
-        stringBuilder.append("  </tr>\n")
-        for (row in podaci) {
-            stringBuilder.append("  <tr>\n")
-            for (cell in row) {
-                stringBuilder.append("    <td>$cell</td>\n")
+                    stringBuilder.append("    <td>$formatiranTitle2</td>\n")
+                    stringBuilder.append("  </tr>\n")
+                }
+                stringBuilder.append("</table>\n")
             }
-            stringBuilder.append("  </tr>\n")
-        }
-        stringBuilder.append("</table>\n")
-        stringBuilder.append("<h2>Rezime</h2>\n")
-        stringBuilder.append("<table>\n")
-        rezime.forEach { (key, value) ->
-            stringBuilder.append("  <tr>\n")
-            stringBuilder.append("    <td>$key</td>\n")
-            stringBuilder.append("    <td> : </td>\n")
-            stringBuilder.append("    <td>$value</td>\n")
-            stringBuilder.append("  </tr>\n")
-        }
-        stringBuilder.append("</table>\n")
-
-        stringBuilder.append("</body></html>")
-        val html = stringBuilder.toString()
-        try {
-            val outputStream = FileOutputStream(pathToFile)
-            val renderer = ITextRenderer()
 
 
-            renderer.setDocumentFromString(html)
-            renderer.layout()
 
 
-            renderer.createPDF(outputStream)
 
 
-            outputStream.close()
-        }catch (e: Exception) {
-            e.printStackTrace()
-        }
 
+            stringBuilder.append("</body></html>")
+            val html = stringBuilder.toString()
+            try {
+                val outputStream = FileOutputStream(pathToFile)
+                val renderer = ITextRenderer()
+
+
+                renderer.setDocumentFromString(html)
+                renderer.layout()
+
+
+                renderer.createPDF(outputStream)
+
+
+                outputStream.close()
+            }catch (e: Exception) {
+                e.printStackTrace()
+            }
     }
 
 }
